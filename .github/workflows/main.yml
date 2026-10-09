@@ -79,3 +79,37 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/webappapicicd:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/webappapicicd:${{ github.sha }}
+
+
+
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Desplegar en EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/webappapicicd:latest
+
+            docker stop webappapicicd || true
+            docker rm webappapicicd || true
+
+            docker run -d \
+              --restart unless-stopped \
+              --name webappapicicd \
+              -p 80:80 \
+              -v webapp_data:/app/database \
+              ${{ secrets.DOCKERHUB_USERNAME }}/webappapicicd:latest
+
+            docker image prune -f
+
+            sleep 5
+
+            curl --fail http://localhost/api/health
