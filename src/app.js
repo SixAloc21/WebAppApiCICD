@@ -16,7 +16,7 @@ app.get("/api/health", (req, res) => {
     statusCode: 200,
     data: {
       status: "ok",
-      message: "API funcionando correctamente"
+      message: "Api funcionando prueba1"
     }
   });
 });
