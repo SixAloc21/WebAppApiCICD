@@ -96,19 +96,19 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/webappapicicd:latest
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/webappapicicd:latest
 
-            docker stop webappapicicd || true
-            docker rm webappapicicd || true
+            sudo docker stop webappapicicd || true
+            sudo docker rm webappapicicd || true
 
-            docker run -d \
+            sudo docker run -d \
               --restart unless-stopped \
               --name webappapicicd \
               -p 80:80 \
               -v webapp_data:/app/database \
               ${{ secrets.DOCKERHUB_USERNAME }}/webappapicicd:latest
 
-            docker image prune -f
+            sudo docker image prune -f
 
             sleep 5
 
