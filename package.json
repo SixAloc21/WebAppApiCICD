@@ -4,13 +4,12 @@
   "description": "API REST con Node.js, Express, SQLite, pruebas automatizadas y CI/CD",
   "main": "src/app.js",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
-    "test": "jest --runInBand",
-    "test:coverage": "jest --runInBand --coverage",
-    "format": "prettier --write .",
-    "prepare": "husky"
-  },
+  "start": "node src/app.js",
+  "dev": "nodemon src/app.js",
+  "test": "jest --runInBand",
+  "test:coverage": "jest --runInBand --coverage",
+  "format": "prettier --write ."
+},
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.js",
