@@ -1,0 +1,81 @@
+name: CI - Tests, Coverage and Docker
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+
+  # =====================================================
+  # 1. PRUEBAS Y COBERTURA
+  # =====================================================
+  test:
+    name: Tests and Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar pruebas y cobertura
+        run: npm run test:coverage
+
+      - name: Guardar reporte de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+
+  # =====================================================
+  # 2. CONSTRUIR Y PUBLICAR IMAGEN DOCKER
+  # =====================================================
+  docker:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    needs: test
+
+    # Solo publica Docker cuando el evento sea PUSH.
+    # En Pull Request únicamente se ejecutan las pruebas.
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Iniciar sesión en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Construir y publicar imagen Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/webappapicicd:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/webappapicicd:${{ github.sha }}
